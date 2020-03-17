@@ -20,6 +20,10 @@ const transactionSchema = new mongoose.Schema({
                 throw new Error('Amount must be a positive number')
             }
         }
+    },
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 })
 

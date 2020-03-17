@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const validator = require('validator')
 
 const transactionSchema = new mongoose.Schema({
     description: {
@@ -9,13 +10,13 @@ const transactionSchema = new mongoose.Schema({
         type: String,
         trim: true,
         lowercase: true,
-        default: 'Others'
+        default: 'Food'
     },
     amount: {
-        type: Number,
+        type: String,
         required: true,
         validate(value) {
-            if (value < 0) {
+            if (!validator.isCurrency(value)) {
                 throw new Error('Amount must be a positive number')
             }
         }

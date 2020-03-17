@@ -61,6 +61,18 @@ userSchema.methods.toJSON = function () {
     return userObject
 }
 
+userSchema.statics.findByCredentials = async (email, password) => {
+    const user = await User.findOne({ email })
+    if (!user) {
+        return undefined
+    }
+    const isValidPassword = await bcrypt.compare(password, user.password)
+    if (!isValidPassword) {
+        throw new Error('Login unsucessful')
+    }
+    return user
+}
+
 const User = mongoose.model('User', userSchema)
 
 module.exports = User

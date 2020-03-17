@@ -1,5 +1,6 @@
 const express = require('express')
 const User = require('../models/user')
+const auth = require('../middleware/auth')
 
 const router = new express.Router()
 
@@ -29,6 +30,32 @@ router.post('/users/login', async (req, res) => {
         return res.send({ user, token })
     } catch (e) {
         return res.status(400).send()
+    }
+})
+
+router.get('/users/me', auth, async (req, res) => {
+    try {
+        res.send(req.user)
+    } catch (e) {
+        res.status(400).send()
+    }
+})
+
+router.patch('/users/me', auth, async (req, res) => {
+    const allowedUpdates = ['email', 'name', 'password']
+    const updates = Object.keys(req.body)
+    const isValidUpdate = updates.every((update) => allowedUpdates.includes(update))
+    try {
+        if (!isValidUpdate) {
+            return res.status(400).send()
+        }
+        updates.forEach((update) => {
+            req.user[update] = req.body[update]
+        })
+        await req.user.save()
+        res.send({ user })
+    } catch (e) {
+        res.status(400).send()
     }
 })
 

@@ -15,12 +15,39 @@ router.post('/transactions', auth, async (req, res) => {
     }
 })
 
+
+//use query string to specify category
+//Ex: category=food
+// sort by amount or created
+//Ex: sortBy=amount_sort or createdAt_sort where sort=ASC|DESC
+//Specify pagination by limit=Number and skip=Number
 router.get('/transactions', auth, async (req, res) => {
+    const category = req.query.category
+    const match = {}
+    const sort = {}
+    if (category) {
+        match.category = category
+    }
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split('_')
+        sort[parts[0]] = parts[1].toLowerCase() == 'desc'? -1 : 1
+    }
     try {
         await req.user.populate({
-            path: 'transactions'
+            path: 'transactions',
+            match,
+            options: {
+                limit: req.query.limit,
+                skip: req.query.skip,
+                sort
+            }
         }).execPopulate()
-        res.send(req.user.transactions)
+        let total = 0
+        req.user.transactions.forEach((transaction) => {
+            const amount = parseFloat(transaction.amount)
+            total = total + amount
+        })
+        res.send({ transactions:req.user.transactions, totalSpent: total})
     } catch (e) {
         res.status(500).send()
     }
